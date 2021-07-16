@@ -6,7 +6,7 @@ env:
     AWS_REGION: us-east-1
     AWS_ACCOUNT_ID: 708995052028
     IMAGE_NAME: aws-pipeline-with-ecs-rolling-update-deployment-image
-    CONTAINER_NAME: aws-pipeline-with-ecs-rolling-update-deployment-container
+    CONTAINER_NAME: ecs-rolling-update-container
 
 
 phases:
