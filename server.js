@@ -19,7 +19,7 @@ const ENV = 'QA';
 const app = express();
 app.get('/', (req, res) => {
   res.statusCode = 200;
-  const msg = 'Hello from Node.js!';
+  const msg = 'Hello from Node!';
   res.send(getPage(msg));
 });
 
