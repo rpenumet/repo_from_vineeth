@@ -1,50 +1,18 @@
-
 version: 0.2
 
-env:
-  variables:
-    AWS_REGION: us-east-1
-    AWS_ACCOUNT_ID: 708995052028
-    IMAGE_NAME: aws-pipeline-with-ecs-rolling-update-deployment-image
-    CONTAINER_NAME: ecs-rolling-update-container
-
-
 phases:
-  install:
-    runtime-versions:
-      nodejs: 12  
-    commands:
-      # - echo Installing Mocha...
-      # - npm install -g mocha (test)
   pre_build:
     commands:
-      - echo  Installing   source NPM dependencies...
-      - npm install
-      # - npm install  unit.js
-      - echo Setting up docker
-      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
-      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com     
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
       - echo Build started on `date`
-      - echo Compiling the Node.js code
-      # - mocha test.js
+      - echo Building the Docker image...          
+      - docker build -t casetest:latest .
+      - docker tag casetest:latest 593204228656.dkr.ecr.us-east-2.amazonaws.com/casetest:latest
   post_build:
     commands:
-      - docker image build -t $IMAGE_NAME .
-      - docker image tag $IMAGE_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:latest
-      - echo image name =  $IMAGE_NAME:latest
-      - echo image url = $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:latest
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:latest
-      - echo Writing image definitions file...
-      # name is a container name from the task definition
-      - printf '[{"name":"'"$CONTAINER_NAME"'","imageUri":"'"$AWS_ACCOUNT_ID"'.dkr.ecr.'"$AWS_REGION"'.amazonaws.com/'"$IMAGE_NAME"':latest"}]' > imagedefinitions.json
-      - cat imagedefinitions.json
       - echo Build completed on `date`
-
-
-artifacts:
-  files: 
-    - imagedefinitions.json
+      - echo Pushing the Docker image...
+      - docker push 593204228656.dkr.ecr.us-east-2.amazonaws.com/casetest:latest
